@@ -1,7 +1,7 @@
 import { kakobuyLink } from "./links.js";
 
 // ===== Config =====
-const KAKOBUY_AFFCODE = ""; // si tenés código de afiliado de KakoBuy, ponelo acá
+const KAKOBUY_AFFCODE = "fqb6s"; // si tenés código de afiliado de KakoBuy, ponelo acá
 const PAGE_SIZE = 40;
 const CATEGORIES = ["Todo", "Ropa", "Zapatillas"];
 const QUICK = ["campera inflable", "buzo con capucha", "remera", "zapatillas", "jean", "camiseta fútbol", "corteiz", "supreme", "nike tech"];
