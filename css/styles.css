@@ -78,6 +78,7 @@ select:focus, .price input:focus { border-color: var(--accent); }
 .prices { display: flex; align-items: baseline; gap: 8px; margin-top: auto; }
 .usd { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
 .cny { color: var(--muted); font-size: 14px; }
+.usd.consultar { font-size: 16px; color: var(--accent); }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 8px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; border: 1px solid var(--line); background: var(--bg-2); }
 .btn:hover { border-color: #444958; }

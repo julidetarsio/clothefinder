@@ -102,9 +102,10 @@ function apply() {
     if (brand && p.brand !== brand) continue;
     if (ptype && p.type !== ptype) continue;
     if (onlyQc && !(p.qc && p.qc.length)) continue;
-    const u = usd(p.price_cny);
-    if (!isNaN(min) && u < min) continue;
-    if (!isNaN(max) && u > max) continue;
+    const hasPrice = p.price_cny > 0;
+    const u = hasPrice ? usd(p.price_cny) : NaN;
+    if (!isNaN(min) && !(u >= min)) continue;
+    if (!isNaN(max) && !(u <= max)) continue;
     const s = score(p, terms);
     if (s > 0) list.push([s, p]);
   }
@@ -112,8 +113,9 @@ function apply() {
   const cmp = {
     rel: (a, b) => b[0] - a[0] || (b[1].added || "").localeCompare(a[1].added || ""),
     new: (a, b) => (b[1].added || "").localeCompare(a[1].added || ""),
-    asc: (a, b) => a[1].price_cny - b[1].price_cny,
-    desc: (a, b) => b[1].price_cny - a[1].price_cny,
+    // los productos con "precio a consultar" van al final
+    asc: (a, b) => (a[1].price_cny || Infinity) - (b[1].price_cny || Infinity),
+    desc: (a, b) => (b[1].price_cny || -1) - (a[1].price_cny || -1),
   }[sort];
   list.sort(cmp);
   state.results = list.map((x) => x[1]);
@@ -156,7 +158,9 @@ function card(p) {
   if (p.demo) thumb.append(el("span", { class: "demo" }, "EJEMPLO"));
 
   const meta = [p.brand, p.color].filter(Boolean).join(" · ");
-  const checked = p.price_fixed
+  const checked = !(p.price_cny > 0)
+    ? "Mirá el precio real en el link del producto"
+    : p.price_fixed
     ? `Precio publicado ${timeAgo(p.price_checked)} (puede variar)`
     : p.price_checked ? `Precio verificado ${timeAgo(p.price_checked)}` : "";
 
@@ -166,8 +170,10 @@ function card(p) {
       el("h3", { class: "title" }, p.title),
       meta ? el("div", { class: "meta" }, meta) : null,
       el("div", { class: "prices" },
-        el("span", { class: "usd" }, (p.price_cny_max ? "desde " : "") + fmtUsd(usd(p.price_cny))),
-        el("span", { class: "cny" }, p.price_cny_max ? `¥${p.price_cny}–${p.price_cny_max}` : `¥${p.price_cny}`)),
+        ...(p.price_cny > 0
+          ? [el("span", { class: "usd" }, (p.price_cny_max ? "desde " : "") + fmtUsd(usd(p.price_cny))),
+             el("span", { class: "cny" }, p.price_cny_max ? `¥${p.price_cny}–${p.price_cny_max}` : `¥${p.price_cny}`)]
+          : [el("span", { class: "usd consultar" }, "Precio a consultar")])),
       checked ? el("div", { class: "meta" }, checked) : null,
       el("div", { class: "link-row" },
         el("code", { title: p.url }, p.url)),
@@ -231,7 +237,7 @@ async function loadRate(fallback) {
 async function init() {
   const data = await fetch("data/products.json", { cache: "no-cache" }).then((r) => r.json());
   // Solo productos con link y precio
-  state.all = data.products.filter((p) => p.url && p.price_cny > 0).map((p) => {
+  state.all = data.products.filter((p) => p.url && (p.price_cny > 0 || p.price_ask)).map((p) => {
     const text = searchText(p);
     return { ...p, _text: text, _words: text.split(" "), _title: norm(p.title).split(" ") };
   });

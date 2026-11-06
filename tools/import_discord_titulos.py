@@ -34,6 +34,8 @@ def main(canal, apply):
         if line.strip() and not line.startswith("#"):
             p = line.split("|")
             titles[p[0]] = None if p[1] == "-" else p[1:6]
+    pf = RAW / f"{canal}_precios.json"   # precios encontrados a mano en las respuestas (¥)
+    manual_price = json.loads(pf.read_text("utf-8")) if pf.exists() else {}
     data = json.loads(DATA.read_text("utf-8"))
     by_url = {p["url"]: p for p in data["products"]}
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -58,9 +60,9 @@ def main(canal, apply):
         if not wid:
             # Taobao / 1688: precio de la publicación (fijo) y foto QC como portada
             qc_dir = ROOT / "img" / "qc" / f"ab{tid}"
-            price = price_from_text(post.get(tid, ""))
+            price = manual_price.get(tid) or price_from_text(post.get(tid, ""))
             qc = sorted(f"img/qc/ab{tid}/{f.name}" for f in qc_dir.glob("*.webp")) if qc_dir.exists() else []
-            if not other or not price or not qc:
+            if not other:
                 skip += 1
                 continue
             plat, iid = other.split(":")
@@ -69,8 +71,9 @@ def main(canal, apply):
                 dup += 1
                 continue
             p = {"id": f"dc-{canal}-{tid}", "title": title, "brand": brand, "category": cat, "type": ptype, "color": color,
-                 "tags": ["qc discord"], "image": "", "qc": qc, "source": plat, "url": url, "price_cny": round(price, 2),
-                 "price_cny_max": None, "price_checked": now, "price_fixed": True, "added": now[:10]}
+                 "tags": ["qc discord"], "image": "", "qc": qc, "source": plat, "url": url,
+                 "price_cny": round(price, 2) if price else 0, "price_cny_max": None, "price_checked": now,
+                 "price_fixed": True, "price_ask": not price, "added": now[:10]}
             data["products"].append(p)
             by_url[url] = p
             added += 1
