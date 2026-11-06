@@ -156,7 +156,9 @@ function card(p) {
   if (p.demo) thumb.append(el("span", { class: "demo" }, "EJEMPLO"));
 
   const meta = [p.brand, p.color].filter(Boolean).join(" · ");
-  const checked = p.price_checked ? `Precio verificado ${timeAgo(p.price_checked)}` : "";
+  const checked = p.price_fixed
+    ? `Precio publicado ${timeAgo(p.price_checked)} (puede variar)`
+    : p.price_checked ? `Precio verificado ${timeAgo(p.price_checked)}` : "";
 
   return el("article", { class: "card" },
     thumb,

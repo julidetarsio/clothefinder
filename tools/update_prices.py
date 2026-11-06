@@ -78,7 +78,7 @@ def main():
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     changed = ok = fail = 0
     for p in data["products"]:
-        if p.get("demo"):
+        if p.get("demo") or p.get("price_fixed"):
             continue
         fn = FETCHERS.get(p.get("source"))
         if not fn:

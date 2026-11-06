@@ -31,7 +31,7 @@ KEEP = [
     "Levi's", "Fred Perry", "Diesel", "Anti Social Social Club", "Billionaire Boys Club", "Kapital",
     "Saint Michael", "Readymade", "Vivienne Westwood", "Parajumpers", "Moose Knuckles", "Montbell",
     "Crocs", "Saucony", "Mizuno", "Umbro", "Under Armour", "Columbia", "Oakley", "Valley", "Mixed Emotions",
-    "Satoshi Nakamoto", "Who Decides War", "Patta", "ERL", "Loro Piana", "Brunello Cucinelli",
+    "Satoshi Nakamoto", "Who Decides War", "Patta", "ERL", "Loro Piana", "Zara", "Dr. Martens", "Brunello Cucinelli",
     # fútbol: clubes y selecciones tienen mucha salida
     "FC Barcelona", "Real Madrid", "AC Milan", "Argentina", "Francia", "Rosario Central", "Tottenham", "Ajax",
     "Santos FC", "NBA",
