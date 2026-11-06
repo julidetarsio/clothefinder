@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>clothefinder</title>
+  <meta name="description" content="Buscá ropa, zapatillas y accesorios de Taobao, Weidian, 1688 y Yupoo con su link listo para tu agente.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="logo" href="./"><span class="logo-mark">◆</span> clothefinder</a>
+      <div class="rate" id="rate" title="Tipo de cambio usado para convertir ¥ a US$">¥1 = US$ …</div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <h1>Encontrá la prenda y copiá el link a tu agente</h1>
+      <p class="sub">Ropa, zapatillas y accesorios de Taobao, Weidian, 1688 y Yupoo. Precios en ¥ y US$.</p>
+      <form class="search" id="searchForm" role="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.9 12.1l4.2 4.2-1.4 1.4-4.2-4.2A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg>
+        <input id="q" type="search" autocomplete="off" placeholder="Ej: campera corteiz, remera supreme roja, zapatillas nike…" aria-label="Buscar productos">
+        <button type="submit">Buscar</button>
+      </form>
+      <div class="chips" id="quick"></div>
+    </div>
+  </section>
+
+  <main class="wrap">
+    <div class="toolbar">
+      <div class="filters">
+        <div class="seg" id="catSeg" role="tablist" aria-label="Categoría"></div>
+        <select id="source" aria-label="Plataforma">
+          <option value="">Todas las plataformas</option>
+          <option value="taobao">Taobao</option>
+          <option value="weidian">Weidian</option>
+          <option value="1688">1688</option>
+          <option value="yupoo">Yupoo</option>
+        </select>
+        <select id="brand" aria-label="Marca"><option value="">Todas las marcas</option></select>
+        <label class="check"><input type="checkbox" id="onlyQc"> Con QC</label>
+      </div>
+      <div class="filters">
+        <div class="price">
+          <input id="pmin" type="number" min="0" inputmode="numeric" placeholder="Mín US$" aria-label="Precio mínimo en dólares">
+          <span>–</span>
+          <input id="pmax" type="number" min="0" inputmode="numeric" placeholder="Máx US$" aria-label="Precio máximo en dólares">
+        </div>
+        <select id="sort" aria-label="Ordenar">
+          <option value="rel">Más relevantes</option>
+          <option value="new">Más nuevos</option>
+          <option value="asc">Precio: menor a mayor</option>
+          <option value="desc">Precio: mayor a menor</option>
+        </select>
+      </div>
+    </div>
+    <div class="count" id="count"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>
+      <strong>No encontramos resultados.</strong>
+      <span>Probá con otra palabra (ej: “buzo” en vez de “hoodie”) o quitá filtros.</span>
+    </div>
+    <div class="more"><button id="moreBtn" hidden>Ver más</button></div>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <p>Los links llevan al proveedor original. Copialo y pegalo en el agente que prefieras (KakoBuy, CSSBuy, etc.). Los precios en US$ son aproximados y no incluyen envío.</p>
+    </div>
+  </footer>
+
+  <dialog id="qcDialog" aria-label="Fotos QC">
+    <div class="qc-head"><strong id="qcTitle">QC</strong><button class="icon-btn" id="qcClose" aria-label="Cerrar">✕</button></div>
+    <div class="qc-body"><img id="qcImg" alt=""><div class="qc-nav"><button id="qcPrev" aria-label="Anterior">‹</button><span id="qcPos"></span><button id="qcNext" aria-label="Siguiente">›</button></div></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

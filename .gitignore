@@ -1,0 +1,5 @@
+# Archivos de trabajo (no se publican)
+data/raw/
+.DS_Store
+__pycache__/
+.claude/
