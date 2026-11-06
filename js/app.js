@@ -3,25 +3,44 @@ import { kakobuyLink } from "./links.js";
 // ===== Config =====
 const KAKOBUY_AFFCODE = ""; // si tenés código de afiliado de KakoBuy, ponelo acá
 const PAGE_SIZE = 40;
-const CATEGORIES = ["Todo", "Ropa", "Zapatillas", "Accesorios"];
-const QUICK = ["campera", "buzo", "remera", "zapatillas", "pantalón", "gorra", "corteiz", "supreme", "nike"];
+const CATEGORIES = ["Todo", "Ropa", "Zapatillas"];
+const QUICK = ["campera inflable", "buzo con capucha", "remera", "zapatillas", "jean", "camiseta fútbol", "corteiz", "supreme", "nike tech"];
 const SOURCE_LABEL = { taobao: "Taobao", weidian: "Weidian", "1688": "1688", yupoo: "Yupoo", otro: "Otro" };
 
 // Sinónimos: cualquier palabra del grupo encuentra a las demás (español rioplatense, España, inglés)
+// Cada grupo es específico: "campera inflable" solo trae inflables, "campera" trae todas las camperas.
 const SYNONYMS = [
-  ["campera", "chaqueta", "jacket", "chamarra", "abrigo", "puffer", "rompeviento", "windbreaker", "parka"],
-  ["buzo", "hoodie", "sudadera", "canguro", "sweater", "sweatshirt", "crewneck", "poleron"],
-  ["remera", "camiseta", "playera", "tshirt", "t-shirt", "tee", "polera"],
-  ["pantalon", "pants", "jogger", "jeans", "jean", "cargo", "trousers", "joggings", "jogging"],
-  ["short", "shorts", "bermuda", "pantaloneta"],
+  ["campera", "camperas", "chaqueta", "jacket", "chamarra", "casaca"],
+  ["inflable", "inflables", "puffer", "plumas", "pluma", "plumon", "plumifero", "acolchada", "acolchado", "nuptse"],
+  ["rompeviento", "rompevientos", "windbreaker", "windrunner", "impermeable"],
+  ["bomber", "varsity", "universitaria"],
+  ["abrigo", "tapado", "coat", "trench", "parka"],
+  ["chaleco", "vest", "gilet"],
+  ["buzo", "buzos", "sudadera", "sweatshirt", "poleron", "crewneck"],
+  ["capucha", "hoodie", "canguro", "hoodies"],
+  ["cierre", "zip", "zipper", "cremallera"],
+  ["sweater", "sueter", "sweter", "pullover", "tejido", "knit", "cardigan"],
+  ["remera", "remeras", "playera", "tshirt", "tee", "polera"],
+  ["camiseta", "camisetas", "jersey", "futbol", "fútbol", "titular", "suplente"],
+  ["chomba", "chombas", "polo"],
+  ["musculosa", "musculosas", "tank", "sisa"],
+  ["pantalon", "pantalones", "pants", "trousers"],
+  ["jean", "jeans", "denim", "vaquero", "vaqueros"],
+  ["jogging", "joggings", "jogger", "joggers", "sweatpants", "babucha"],
+  ["short", "shorts", "bermuda", "bermudas", "pantaloneta"],
   ["zapatillas", "zapatilla", "sneakers", "tenis", "shoes", "calzado", "deportivas"],
+  ["botines", "botin", "cleats", "taperoles", "chimpunes"],
+  ["ojotas", "ojota", "chanclas", "chinelas", "slides", "sandalias", "sandalia"],
+  ["pantuflas", "pantufla", "zuecos", "zueco", "clogs"],
+  ["botas", "bota", "boots", "borcegos", "borcego"],
   ["gorra", "cap", "gorro", "beanie", "hat", "sombrero"],
   ["mochila", "backpack", "bolso", "bag", "rinonera", "cartera"],
   ["medias", "calcetines", "socks"],
   ["anteojos", "lentes", "gafas", "sunglasses"],
   ["cinturon", "cinto", "belt"],
-  ["camisa", "shirt"],
-  ["conjunto", "tracksuit", "chandal", "jogging set"],
+  ["camisa", "camisas", "shirt"],
+  ["conjunto", "conjuntos", "tracksuit", "chandal", "set"],
+  ["manga", "sleeve"], ["larga", "long"],
   ["negro", "negra", "black"], ["blanco", "blanca", "white"], ["rojo", "roja", "red"],
   ["azul", "blue", "navy"], ["gris", "grey", "gray"], ["verde", "green"], ["marron", "brown"],
   ["beige", "crema", "cream"], ["rosa", "pink"], ["amarillo", "yellow"], ["violeta", "purple"],
@@ -74,13 +93,14 @@ function timeAgo(iso) {
 // ===== Render =====
 function apply() {
   const terms = norm($("q").value).split(" ").filter(Boolean);
-  const source = $("source").value, brand = $("brand").value, onlyQc = $("onlyQc").checked;
+  const source = $("source").value, brand = $("brand").value, ptype = $("ptype").value, onlyQc = $("onlyQc").checked;
   const min = parseFloat($("pmin").value), max = parseFloat($("pmax").value);
   let list = [];
   for (const p of state.all) {
     if (state.cat !== "Todo" && p.category !== state.cat) continue;
     if (source && p.source !== source) continue;
     if (brand && p.brand !== brand) continue;
+    if (ptype && p.type !== ptype) continue;
     if (onlyQc && !(p.qc && p.qc.length)) continue;
     const u = usd(p.price_cny);
     if (!isNaN(min) && u < min) continue;
@@ -225,6 +245,14 @@ async function init() {
   // Marcas
   const brands = [...new Set(state.all.map((p) => p.brand).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   for (const b of brands) $("brand").append(el("option", { value: b }, b));
+  // Tipos de prenda, agrupados por categoría
+  const types = {};
+  for (const p of state.all) if (p.type) (types[p.category] = types[p.category] || new Set()).add(p.type);
+  for (const cat of Object.keys(types).sort()) {
+    const g = el("optgroup", { label: cat });
+    for (const t of [...types[cat]].sort((a, b) => a.localeCompare(b))) g.append(el("option", { value: t }, t));
+    $("ptype").append(g);
+  }
   // Búsquedas rápidas
   for (const q of QUICK) $("quick").append(el("button", { class: "chip", onclick: () => { $("q").value = q; apply(); } }, q));
 
@@ -239,7 +267,7 @@ async function init() {
   let t;
   $("q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(apply, 120); });
   $("searchForm").addEventListener("submit", (e) => { e.preventDefault(); apply(); $("q").blur(); });
-  for (const id of ["source", "brand", "onlyQc", "sort"]) $(id).addEventListener("change", apply);
+  for (const id of ["source", "brand", "ptype", "onlyQc", "sort"]) $(id).addEventListener("change", apply);
   for (const id of ["pmin", "pmax"]) $(id).addEventListener("input", apply);
   $("moreBtn").onclick = () => { state.shown += PAGE_SIZE; render(); };
 

@@ -22,7 +22,7 @@ TYPE_RULES = [
     (r"\bhalf[- ]zip|\bquarter[- ]zip|1/4 zip", "Buzo medio cierre"),
     (r"\bhoodie|\bhooded sweatshirt", "Buzo con capucha"),
     (r"\bcrewneck|\bsweatshirt|\bcrew\b", "Buzo"),
-    (r"\bpuffer|\bdown jacket|\bdown coat|\bpadded jacket", "Campera puffer"),
+    (r"\bpuffer|\bdown jacket|\bdown coat|\bpadded jacket", "Campera inflable"),
     (r"\bvest\b|\bgilet", "Chaleco"),
     (r"\bwindbreaker|\bwindrunner|\btrack jacket", "Campera rompeviento"),
     (r"\bdenim jacket|\bjean jacket|\btrucker", "Campera de jean"),
@@ -31,10 +31,10 @@ TYPE_RULES = [
     (r"\bcoat\b|\btrench|\bovercoat", "Abrigo"),
     (r"\bjacket|\bshell\b|\banorak|\bparka", "Campera"),
     (r"\blong[- ]?sleeve|\bl/s\b", "Remera manga larga"),
-    (r"\bpolo\b", "Chomba"),
     (r"\btank top|\bsinglet", "Musculosa"),
     (r"\bjersey", "Camiseta"),
     (r"\bt-?shirt|\btee\b", "Remera"),
+    (r"\bpolo\b(?!\s+ralph)", "Chomba"),
     (r"\bjeans?\b|\bdenim pants", "Jean"),
     (r"\bcargo", "Pantalón cargo"),
     (r"\bjogger|\bsweatpants|\btrack ?pants", "Jogging"),
@@ -47,9 +47,22 @@ TYPE_RULES = [
     (r"\bboots?\b", "Botas"),
     (r"\bslippers?\b|\bclogs?\b|\bmules?\b", "Pantuflas"),
     (r"\bloafers?\b", "Mocasines"),
+    (r"\bcleats?\b|\bfootball boots?\b|\b(fg|tf|ag)\b", "Botines"),
 ]
+# Tipos permitidos según la categoría de origen (evita "Buzo" en una remera, etc.)
+ALLOWED = {
+    "tees": {"Remera", "Remera manga larga", "Chomba", "Musculosa", "Camiseta"},
+    "hoodies": {"Buzo", "Buzo con capucha", "Buzo con cierre", "Buzo medio cierre"},
+    "jackets": {"Campera", "Campera inflable", "Chaleco", "Campera rompeviento", "Campera de jean", "Campera de cuero", "Campera bomber", "Abrigo"},
+    "pants": {"Pantalón", "Jean", "Pantalón cargo", "Jogging"},
+    "shorts": {"Short"},
+    "sets": {"Conjunto", "Conjunto deportivo"},
+    "shirts": {"Camisa", "Chomba", "Remera manga larga"},
+    "knitwear": {"Sweater", "Cárdigan", "Buzo medio cierre", "Chaleco"},
+    "shoes": {"Ojotas", "Botas", "Pantuflas", "Mocasines", "Botines"},
+}
 # Palabras de tipo que se sacan del modelo para no repetir
-TYPE_WORDS = r"\b(zip[- ]?up|full[- ]zip|half[- ]zip|quarter[- ]zip|zip|hoodie|hooded|sweatshirt|crewneck|t-?shirt|tee|jacket|pants|jeans?|shorts?|sweater|knit|cardigan|shirt|long[- ]?sleeve|polo|vest|coat|tracksuit|jogger|sweatpants|sneakers?|shoes?|cargo|windbreaker|puffer|vest|down|jackets|hoodies|shirts|sweatshorts|sweatpants|basketball shoes|running shoes|hiking shoes|sneakers|shoes|slides|boots|trainers|short-sleeved?|long-sleeved?|-?sleeved?|offers a variety of classic|style|graphic|t-shirts|tees|polo shirts?|and vests|jackets and|clothing|apparel)\b"
+TYPE_WORDS = r"\b(zip[- ]?up|full[- ]zip|half[- ]zip|quarter[- ]zip|zip|hoodie|hooded|sweatshirt|crewneck|t-?shirt|tee|jacket|pants|jeans?|shorts?|sweater|knit|cardigan|shirt|long[- ]?sleeve|polo|vest|coat|tracksuit|jogger|sweatpants|sneakers?|shoes?|cargo|windbreaker|puffer|vest|down|crew-?neck|crew|bodysuit|jackets|hoodies|shirts|sweatshorts|sweatpants|basketball shoes|running shoes|hiking shoes|sneakers|shoes|slides|boots|trainers|short-sleeved?|long-sleeved?|-?sleeved?|offers a variety of classic|style|graphic|t-shirts|tees|polo shirts?|and vests|jackets and|clothing|apparel|vests|windbreakers|puffers|coats|sweaters|cardigans|joggers|trousers|sets|collection|series|new|men'?s|women'?s|unisex|classic-fit)\b"
 
 COLORS = [
     ("black", "negro"), ("white", "blanco"), ("red", "rojo"), ("blue", "azul"), ("navy", "azul marino"),
@@ -58,7 +71,7 @@ COLORS = [
     ("orange", "naranja"), ("khaki", "caqui"), ("burgundy", "bordó"), ("silver", "plateado"), ("gold", "dorado"),
     ("tan", "camel"), ("camo", "camuflado"),
 ]
-FEMININE = {"Remera", "Campera", "Camisa", "Chomba", "Musculosa", "Camiseta", "Ojotas", "Botas", "Zapatillas", "Pantuflas"}
+FEMININE = {"Botines"} | {"Remera", "Campera", "Camisa", "Chomba", "Musculosa", "Camiseta", "Ojotas", "Botas", "Zapatillas", "Pantuflas"}
 
 
 def _fem(color, plural):
@@ -76,13 +89,9 @@ def build(cat, brand, name):
     low = name.lower()
 
     ptype = default_type
+    allowed = ALLOWED.get(cat)
     for rx, t in TYPE_RULES:
-        if re.search(rx, low):
-            # no convertir zapatillas en otra cosa salvo calzado
-            if cat == "shoes" and t not in {"Ojotas", "Botas", "Pantuflas", "Mocasines"}:
-                continue
-            if cat != "shoes" and t in {"Ojotas", "Botas", "Pantuflas", "Mocasines"}:
-                continue
+        if re.search(rx, low) and (allowed is None or t in allowed):
             ptype = t
             break
 
@@ -115,6 +124,8 @@ def build(cat, brand, name):
     plural = first.endswith("s")
     colors = [(_fem(c, plural) if fem else (c + "s" if plural and c[-1] in "o" else c)) for c in found[:2]]
 
+    model = re.sub(r"(^|\s)(and|&|y|con|with|-|:)(\s+(and|&|y|con|with|-|:))*\s*$", "", " ".join(model.split()[:6])).strip(" -:,&")
+    model = re.sub(r"^(and|&|con|-)\s+", "", model)
     parts = [ptype, brand, model, " y ".join(colors)]
     title = " ".join(p for p in parts if p)
     return re.sub(r"\s+", " ", title).strip(), category, ptype, (found[0].capitalize() if found else "")
